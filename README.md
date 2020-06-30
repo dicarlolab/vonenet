@@ -10,13 +10,13 @@ A family of biologically-inspired Convolutional Neural Networks (CNNs). VOneNets
 [read more...](#longer-motivation)
 
 ## Available Models
-*(Click on model names to download the weights of ImageNet-trained models. Note that you do not need to download the weights manually.)*
+*(Click on model names to download the weights of ImageNet-trained models. Alternatively, you can use the function get_model in the vonenet package to download the weights.)*
 
 | Name     | Description                                                              |
 | -------- | ------------------------------------------------------------------------ |
 | [VOneResNet50](https://vonenet-models.s3.us-east-2.amazonaws.com/voneresnet50_e70.pth.tar) | Our best performing VOneNet with a ResNet50 back-end |
 | [VOneCORnet-S](https://vonenet-models.s3.us-east-2.amazonaws.com/vonecornets_e70.pth.tar) | VOneNet with a recurrent neural network back-end based on the CORnet-S |
-| [CORnet-S](https://vonenet-models.s3.us-east-2.amazonaws.com/vonealexnet_e70.pth.tar) | VOneNet with a back-end based on AlexNet         |
+| [VOneAlexNet](https://vonenet-models.s3.us-east-2.amazonaws.com/vonealexnet_e70.pth.tar) | VOneNet with a back-end based on AlexNet         |
 
 
 ## Quick Start
