@@ -5,6 +5,9 @@ import requests
 
 from .vonenet import VOneNet
 
+FILE_WEIGHTS = {'alexnet': 'vonealexnet_e70.pth.tar', 'resnet50': 'voneresnet50_e70.pth.tar',
+                'resnet50_at': 'voneresnet50_at_e96.pth.tar', 'cornets': 'vonecornets_e70.pth.tar'}
+
 
 def get_model(model_arch=None, pretrained=True, **kwargs):
     """
@@ -13,10 +16,10 @@ def get_model(model_arch=None, pretrained=True, **kwargs):
     model_arch: string with identifier to choose the architecture of the back-end (resnet50, cornets, alexnet)
     """
     if pretrained:
-        url = f'https://vonenet-models.s3.us-east-2.amazonaws.com/vone{model_arch.lower()}_e70.pth.tar'
+        url = f'https://vonenet-models.s3.us-east-2.amazonaws.com/{FILE_WEIGHTS[model_arch.lower()]}'
         home_dir = os.environ['HOME']
         vonenet_dir = os.path.join(home_dir, '.vonenet')
-        weightsdir_path = os.path.join(vonenet_dir, f'vone{model_arch.lower()}_e70.pth.tar')
+        weightsdir_path = os.path.join(vonenet_dir, FILE_WEIGHTS[model_arch.lower()])
         if not os.path.exists(vonenet_dir):
             os.makedirs(vonenet_dir)
         if not os.path.exists(weightsdir_path):
@@ -38,13 +41,17 @@ def get_model(model_arch=None, pretrained=True, **kwargs):
         model = globals()[f'VOneNet'](model_arch=model_arch, stride=stride, k_exc=k_exc,
                                       simple_channels=simple_channels, complex_channels=complex_channels,
                                       noise_mode=noise_mode, noise_scale=noise_scale, noise_level=noise_level)
+
+        if model_arch.lower() == 'resnet50_at':
+            model = model.module
+            model.load_state_dict(ckpt_data['state_dict'])
+        else:
+            model.load_state_dict(ckpt_data['state_dict'])
+            model = model.module
+
         model = nn.DataParallel(model)
-        model.load_state_dict(ckpt_data['state_dict'])
     else:
         model = globals()[f'VOneNet'](model_arch=model_arch, **kwargs)
         nn.DataParallel(model)
     return model
-
-
-
 

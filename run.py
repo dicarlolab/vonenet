@@ -13,7 +13,7 @@ parser.add_argument('--workers', default=20,
                     help='number of data loading workers')
 parser.add_argument('--ngpus', default=1, type=int,
                     help='number of GPUs to use; 0 if you want to run on CPU')
-parser.add_argument('--model_arch', choices=['alexnet', 'resnet50', 'cornets'], default='resnet50',
+parser.add_argument('--model_arch', choices=['alexnet', 'resnet50', 'resnet50_at' 'cornets'], default='resnet50',
                     help='back-end model architecture to load')
 
 FLAGS, FIRE_FLAGS = parser.parse_known_args()
