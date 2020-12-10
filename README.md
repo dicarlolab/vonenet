@@ -21,8 +21,9 @@ A family of biologically-inspired Convolutional Neural Networks (CNNs). VOneNets
 
 ## Quick Start
 
-Soon...
+VOneNets was trained with images normalized with mean=[0.5,0.5,0.5] and std=[0.5,0.5,0.5]
 
+More information coming soon...
 
 
 ## Longer Motivation
