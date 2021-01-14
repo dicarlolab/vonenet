@@ -14,9 +14,9 @@ A family of biologically-inspired Convolutional Neural Networks (CNNs). VOneNets
 
 | Name     | Description                                                              |
 | -------- | ------------------------------------------------------------------------ |
-| [VOneResNet50](https://vonenet-models.s3.us-east-2.amazonaws.com/voneresnet50_e70.pth.tar) | Our best performing VOneNet with a ResNet50 back-end |
-| [VOneCORnet-S](https://vonenet-models.s3.us-east-2.amazonaws.com/vonecornets_e70.pth.tar) | VOneNet with a recurrent neural network back-end based on the CORnet-S |
-| [VOneAlexNet](https://vonenet-models.s3.us-east-2.amazonaws.com/vonealexnet_e70.pth.tar) | VOneNet with a back-end based on AlexNet         |
+| [VOneResNet50](https://vonenet-models.s3.us-east-2.amazonaws.com/voneresnet50_e70.pth) | Our best performing VOneNet with a ResNet50 back-end |
+| [VOneCORnet-S](https://vonenet-models.s3.us-east-2.amazonaws.com/vonecornets_e70.pth) | VOneNet with a recurrent neural network back-end based on the CORnet-S |
+| [VOneAlexNet](https://vonenet-models.s3.us-east-2.amazonaws.com/vonealexnet_e70.pth) | VOneNet with a back-end based on AlexNet         |
 
 
 ## Quick Start
@@ -56,3 +56,50 @@ GNU GPL 3+
 ## FAQ
 
 Soon...
+
+## Setup and Run
+
+1. You need to clone it in your local repository
+  $ git clone https://github.com/dicarlolab/vonenet.git
+   
+2. And when you setup its codes, you must need 'val' directory. so here is link.
+  this link is from Korean's blog I refered as below https://seongkyun.github.io/others/2019/03/06/imagenet_dn/
+  
+       ** Download link**
+  https://academictorrents.com/collection/imagenet-2012 
+  
+  Once you download that large tar files, you must unzip that files
+  -- all instructions below are refered above link, I only translate it
+  
+  # Unzip training dataset
+  $ mkdir train && mb ILSVRC2012_img_train.tar train/ && cd train
+  $ tar -xvf ILSVRC2012_img_train.tar
+  $ rm -f ILSVRC2012_img_train.tar    (If you want to remove zipped file(tar))
+  $ find . -name "*.tar" | while read NAME ; do mkdir -p "${NAME%.tar}"; tar -xvf "${NAME}" -C "${NAME%.tar}"; rm -f "${NAME}"; done
+  $ cd ..
+  
+  # Unzip validation dataset
+  $ mkdir val && mv ILSVRC2012_img_val.tar val/ && cd val && tar -xvf ILSVRC2012_img_val.tar
+  $ wget -qO- https://raw.githubusercontent.com/soumith/imagenetloader.torch/master/valprep.sh | bash
+  
+  when it's finished, you can see train directory, val directory
+  that 'val' directory is needed when setting up 
+  
+  ## Caution!!!!
+  after all execution above, must remove directory or file not having name n0000
+  -> there will be fault in training
+  -> ex) 'ILSVRC2012_img_train' in train directory, 'ILSVRC2012_img_val.tar' in val directory
+  
+3. if you've done getting data, then we can setting up
+  go to local repository which into you cloned and open terminal (you must check your versions of python, pytorch, cudatoolkit if okay then,)
+  $ python3 setup.py install
+  $ python3 run.py --in_path {directory including above dataset, 'val' directory must be in!} 
+  
+  # If you see any GPU related problem especially 'GPU is not available' although you already got
+  $ python3 run.py --in_path {directory including above dataset, 'val' directory must be in!} --ngpus 0
+  
+  ngpus is 1 as default. if you don't care running on CPU you do so  
+  
+  
+  
+
