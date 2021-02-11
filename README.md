@@ -14,9 +14,9 @@ A family of biologically-inspired Convolutional Neural Networks (CNNs). VOneNets
 
 | Name     | Description                                                              |
 | -------- | ------------------------------------------------------------------------ |
-| [VOneResNet50](https://vonenet-models.s3.us-east-2.amazonaws.com/voneresnet50_e70.pth) | Our best performing VOneNet with a ResNet50 back-end |
-| [VOneCORnet-S](https://vonenet-models.s3.us-east-2.amazonaws.com/vonecornets_e70.pth) | VOneNet with a recurrent neural network back-end based on the CORnet-S |
-| [VOneAlexNet](https://vonenet-models.s3.us-east-2.amazonaws.com/vonealexnet_e70.pth) | VOneNet with a back-end based on AlexNet         |
+| [VOneResNet50](https://vonenet-models.s3.us-east-2.amazonaws.com/voneresnet50_e70.pth.tar) | Our best performing VOneNet with a ResNet50 back-end |
+| [VOneCORnet-S](https://vonenet-models.s3.us-east-2.amazonaws.com/vonecornets_e70.pth.tar) | VOneNet with a recurrent neural network back-end based on the CORnet-S |
+| [VOneAlexNet](https://vonenet-models.s3.us-east-2.amazonaws.com/vonealexnet_e70.pth.tar) | VOneNet with a back-end based on AlexNet         |
 
 
 ## Quick Start
