@@ -7,7 +7,7 @@ import fire
 
 parser = argparse.ArgumentParser(description='ImageNet Training')
 ## General parameters
-parser.add_argument('--data_path', required=True,
+parser.add_argument('--in_path', required=True,
                     help='path to ImageNet folder that contains train and val folders')
 parser.add_argument('-o', '--output_path', default=None,
                     help='path for storing ')
@@ -282,7 +282,7 @@ class ImageNetTrain(object):
 
     def data(self):
         dataset = torchvision.datasets.ImageFolder(
-            os.path.join(FLAGS.data_path, 'train'),
+            os.path.join(FLAGS.in_path, 'train'),
             torchvision.transforms.Compose([
                 torchvision.transforms.RandomResizedCrop(224),
                 torchvision.transforms.RandomHorizontalFlip(),
@@ -332,7 +332,7 @@ class ImageNetVal(object):
 
     def data(self):
         dataset = torchvision.datasets.ImageFolder(
-            os.path.join(FLAGS.data_path, 'val'),
+            os.path.join(FLAGS.in_path, 'val'),
             torchvision.transforms.Compose([
                 torchvision.transforms.Resize(256),
                 torchvision.transforms.CenterCrop(224),
