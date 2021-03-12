@@ -104,7 +104,7 @@ class VOneBlock(nn.Module):
             x /= self.noise_scale
         if self.noise_mode == 'gaussian':
             if self.fixed_noise is not None:
-                x += self.fixed_noise
+                x += self.fixed_noise * self.noise_scale
             else:
                 x += torch.distributions.normal.Normal(torch.zeros_like(x), scale=1).rsample() * self.noise_scale
         return self.noise(x)
