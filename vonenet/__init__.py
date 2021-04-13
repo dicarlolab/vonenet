@@ -7,7 +7,8 @@ from .vonenet import VOneNet
 from torch.nn import Module
 
 FILE_WEIGHTS = {'alexnet': 'vonealexnet_e70.pth.tar', 'resnet50': 'voneresnet50_e70.pth.tar',
-                'resnet50_at': 'voneresnet50_at_e96.pth.tar', 'cornets': 'vonecornets_e70.pth.tar'}
+                'resnet50_at': 'voneresnet50_at_e96.pth.tar', 'cornets': 'vonecornets_e70.pth.tar',
+                'resnet50_ns': 'voneresnet50_ns_e70.pth.tar'}
 
 
 class Wrapper(Module):
@@ -45,10 +46,7 @@ def get_model(model_arch=None, pretrained=True, map_location='cpu', **kwargs):
         noise_scale = ckpt_data['flags']['noise_scale']
         noise_level = ckpt_data['flags']['noise_level']
 
-        if model_arch.lower() == 'resnet50_at':
-            model_id = 'resnet50'
-        else:
-            model_id = model_arch
+        model_id = ckpt_data['flags']['arch'].replace('_','').lower()
 
         model = globals()[f'VOneNet'](model_arch=model_id, stride=stride, k_exc=k_exc,
                                       simple_channels=simple_channels, complex_channels=complex_channels,
@@ -66,6 +64,8 @@ def get_model(model_arch=None, pretrained=True, map_location='cpu', **kwargs):
         model = nn.DataParallel(model)
     else:
         model = globals()[f'VOneNet'](model_arch=model_arch, **kwargs)
-        nn.DataParallel(model)
+        model = nn.DataParallel(model)
+
+    model.to(map_location)
     return model
 
