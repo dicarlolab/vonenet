@@ -119,6 +119,8 @@ torch.backends.cudnn.benchmark = True
 
 if FLAGS.ngpus > 0:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+else:
+    device = 'cpu'
 
 if FLAGS.normalization == 'vonenet':
     print('VOneNet normalization')
@@ -140,8 +142,6 @@ def load_model():
                       complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
                       noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc)
 
-    if FLAGS.ngpus == 0:
-        model = model.module
     if FLAGS.ngpus > 0 and torch.cuda.device_count() > 1:
         print('We have multiple GPUs detected')
         model = model.to(device)
