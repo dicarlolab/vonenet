@@ -13,6 +13,8 @@ parser.add_argument('-o', '--output_path', default=None,
                     help='path for storing ')
 parser.add_argument('-restore_epoch', '--restore_epoch', default=0, type=int,
                     help='epoch number for restoring model training ')
+parser.add_argument('-restore_path', '--restore_path', default=None, type=str,
+                    help='path of folder containing specific epoch file for restoring model training')
 
 ## Training parameters
 parser.add_argument('--ngpus', default=0, type=int,
