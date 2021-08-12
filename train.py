@@ -1,20 +1,29 @@
+import argparse
+import io
+import os
+import pickle
+import pprint
+import shlex
+import subprocess
+import time
 
-import os, argparse, time, subprocess, io, shlex, pickle, pprint
-import pandas as pd
-import numpy as np
-import tqdm
 import fire
+import numpy as np
+import pandas as pd
+import tqdm
 
 parser = argparse.ArgumentParser(description='ImageNet Training')
 ## General parameters
 parser.add_argument('--in_path', required=True,
-                    help='path to ImageNet folder that contains train and val folders')
+                    help='path to ImageNet folder that contains train and val '
+                         'folders')
 parser.add_argument('-o', '--output_path', default=None,
                     help='path for storing ')
 parser.add_argument('-restore_epoch', '--restore_epoch', default=0, type=int,
                     help='epoch number for restoring model training ')
 parser.add_argument('-restore_path', '--restore_path', default=None, type=str,
-                    help='path of folder containing specific epoch file for restoring model training')
+                    help='path of folder containing specific epoch file for '
+                         'restoring model training')
 
 ## Training parameters
 parser.add_argument('--ngpus', default=0, type=int,
@@ -25,12 +34,14 @@ parser.add_argument('--epochs', default=70, type=int,
                     help='number of total epochs to run')
 parser.add_argument('--batch_size', default=256, type=int,
                     help='mini-batch size')
-parser.add_argument('--optimizer', choices=['stepLR', 'plateauLR'], default='stepLR',
+parser.add_argument('--optimizer', choices=['stepLR', 'plateauLR'],
+                    default='stepLR',
                     help='Optimizer')
 parser.add_argument('--lr', '--learning_rate', default=.1, type=float,
                     help='initial learning rate')
 parser.add_argument('--step_size', default=20, type=int,
-                    help='after how many epochs learning rate should be decreased by step_factor')
+                    help='after how many epochs learning rate should be '
+                         'decreased by step_factor')
 parser.add_argument('--step_factor', default=0.1, type=float,
                     help='factor by which to decrease the learning rate')
 parser.add_argument('--momentum', default=.9, type=float, help='momentum')
@@ -40,9 +51,12 @@ parser.add_argument('--weight_decay', default=1e-4, type=float,
 ## Model parameters
 parser.add_argument('--torch_seed', default=0, type=int,
                     help='seed for weights initializations and torch RNG')
-parser.add_argument('--model_arch', choices=['alexnet', 'resnet50', 'resnet50_at', 'cornets'], default='resnet50',
+parser.add_argument('--model_arch',
+                    choices=['alexnet', 'resnet50', 'resnet50_at', 'cornets'],
+                    default='resnet50',
                     help='back-end model architecture to load')
-parser.add_argument('--normalization', choices=['vonenet', 'imagenet'], default='vonenet',
+parser.add_argument('--normalization', choices=['vonenet', 'imagenet'],
+                    default='vonenet',
                     help='image normalization to apply to models')
 parser.add_argument('--visual_degrees', default=8, type=float,
                     help='Field-of-View of the model in visual degrees')
@@ -52,7 +66,8 @@ parser.add_argument('--visual_degrees', default=8, type=float,
 parser.add_argument('--stride', default=4, type=int,
                     help='stride for the first convolution (Gabor Filter Bank)')
 parser.add_argument('--ksize', default=25, type=int,
-                    help='kernel size for the first convolution (Gabor Filter Bank)')
+                    help='kernel size for the first convolution (Gabor Filter '
+                         'Bank)')
 parser.add_argument('--simple_channels', default=256, type=int,
                     help='number of simple channels in V1 block')
 parser.add_argument('--complex_channels', default=256, type=int,
@@ -65,7 +80,8 @@ parser.add_argument('--sf_max', default=6, type=float,
                     help='')
 parser.add_argument('--sf_min', default=0, type=float,
                     help='')
-parser.add_argument('--rand_param', choices=[True, False], default=False, type=bool,
+parser.add_argument('--rand_param', choices=[True, False], default=False,
+                    type=bool,
                     help='random gabor params')
 parser.add_argument('--k_exc', default=25, type=float,
                     help='')
@@ -79,7 +95,6 @@ parser.add_argument('--noise_scale', default=1, type=float,
 parser.add_argument('--noise_level', default=1, type=float,
                     help='noise level')
 
-
 FLAGS, FIRE_FLAGS = parser.parse_known_args()
 
 
@@ -90,7 +105,9 @@ def set_gpus(n=2):
     """
     if n > 0:
         gpus = subprocess.run(shlex.split(
-            'nvidia-smi --query-gpu=index,memory.free,memory.total --format=csv,nounits'), check=True,
+            'nvidia-smi --query-gpu=index,memory.free,memory.total '
+            '--format=csv,nounits'),
+            check=True,
             stdout=subprocess.PIPE).stdout
         gpus = pd.read_csv(io.BytesIO(gpus), sep=', ', engine='python')
         gpus = gpus[gpus['memory.total [MiB]'] > 10000]  # only above 10 GB
@@ -99,7 +116,9 @@ def set_gpus(n=2):
                        for i in os.environ['CUDA_VISIBLE_DEVICES'].split(',')]
             gpus = gpus[gpus['index'].isin(visible)]
         gpus = gpus.sort_values(by='memory.free [MiB]', ascending=False)
-        os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # making sure GPUs are numbered the same way as in nvidia_smi
+        os.environ[
+            'CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # making sure GPUs are
+        # numbered the same way as in nvidia_smi
         os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(
             [str(i) for i in gpus['index'].iloc[:n]])
     else:
@@ -137,12 +156,18 @@ elif FLAGS.normalization == 'imagenet':
 def load_model():
     map_location = None if FLAGS.ngpus > 0 else 'cpu'
     print('Getting VOneNet')
-    model = get_model(map_location=map_location, model_arch=FLAGS.model_arch, pretrained=False,
-                      visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride, ksize=FLAGS.ksize,
-                      sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max, sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
-                      gabor_seed=FLAGS.gabor_seed, simple_channels=FLAGS.simple_channels,
-                      complex_channels=FLAGS.simple_channels, noise_mode=FLAGS.noise_mode,
-                      noise_scale=FLAGS.noise_scale, noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc)
+    model = get_model(map_location=map_location, model_arch=FLAGS.model_arch,
+                      pretrained=False,
+                      visual_degrees=FLAGS.visual_degrees, stride=FLAGS.stride,
+                      ksize=FLAGS.ksize,
+                      sf_corr=FLAGS.sf_corr, sf_max=FLAGS.sf_max,
+                      sf_min=FLAGS.sf_min, rand_param=FLAGS.rand_param,
+                      gabor_seed=FLAGS.gabor_seed,
+                      simple_channels=FLAGS.simple_channels,
+                      complex_channels=FLAGS.simple_channels,
+                      noise_mode=FLAGS.noise_mode,
+                      noise_scale=FLAGS.noise_scale,
+                      noise_level=FLAGS.noise_level, k_exc=FLAGS.k_exc)
 
     if FLAGS.ngpus > 0 and torch.cuda.device_count() > 1:
         print('We have multiple GPUs detected')
@@ -162,7 +187,6 @@ def train(save_train_epochs=.2,  # how often save output during training
           save_model_epochs=1,  # how often save model weights
           save_model_secs=720 * 10  # how often save model (in sec)
           ):
-
     model = load_model()
 
     trainer = ImageNetTrain(model)
@@ -173,12 +197,15 @@ def train(save_train_epochs=.2,  # how often save output during training
 
     if FLAGS.restore_epoch > 0:
         print('Restoring from previous...')
-        ckpt_data = torch.load(os.path.join(FLAGS.restore_path, f'epoch_{FLAGS.restore_epoch:02d}.pth.tar'))
+        ckpt_data = torch.load(os.path.join(FLAGS.restore_path,
+                                            f'epoch_'
+                                            f'{FLAGS.restore_epoch:02d}.pth.tar'))
         start_epoch = ckpt_data['epoch']
-        print('Loaded epoch: '+str(start_epoch))
+        print('Loaded epoch: ' + str(start_epoch))
         model.load_state_dict(ckpt_data['state_dict'])
         trainer.optimizer.load_state_dict(ckpt_data['optimizer'])
-        results_old = pickle.load(open(os.path.join(FLAGS.restore_path, 'results.pkl'), 'rb'))
+        results_old = pickle.load(
+            open(os.path.join(FLAGS.restore_path, 'results.pkl'), 'rb'))
         for result in results_old:
             records.append(result)
 
@@ -202,13 +229,15 @@ def train(save_train_epochs=.2,  # how often save output during training
         save_model_steps = (np.arange(0, FLAGS.epochs + 1,
                                       save_model_epochs) * nsteps).astype(int)
 
-    for epoch in tqdm.trange(start_epoch, FLAGS.epochs + 1, initial=0, desc='epoch'):
+    for epoch in tqdm.trange(start_epoch, FLAGS.epochs + 1, initial=0,
+                             desc='epoch'):
         print(epoch)
         data_load_start = np.nan
 
         data_loader_iter = trainer.data_loader
 
-        for step, data in enumerate(tqdm.tqdm(data_loader_iter, desc=trainer.name)):
+        for step, data in enumerate(
+                tqdm.tqdm(data_loader_iter, desc=trainer.name)):
             data_load_time = time.time() - data_load_start
             global_step = epoch * nsteps + step
 
@@ -226,7 +255,8 @@ def train(save_train_epochs=.2,  # how often save output during training
 
                 records.append(results)
                 if len(results) > 1:
-                    pickle.dump(records, open(os.path.join(FLAGS.output_path, 'results.pkl'), 'wb'))
+                    pickle.dump(records, open(
+                        os.path.join(FLAGS.output_path, 'results.pkl'), 'wb'))
 
                 ckpt_data = {}
                 ckpt_data['flags'] = FLAGS.__dict__.copy()
@@ -243,7 +273,8 @@ def train(save_train_epochs=.2,  # how often save output during training
                 if save_model_steps is not None:
                     if global_step in save_model_steps:
                         torch.save(ckpt_data, os.path.join(FLAGS.output_path,
-                                                           f'epoch_{epoch:02d}.pth.tar'))
+                                                           f'epoch_{
+                        epoch:02d}.pth.tar'))
 
             else:
                 if len(results) > 1:
@@ -270,14 +301,18 @@ class ImageNetTrain(object):
         self.name = 'train'
         self.model = model
         self.data_loader = self.data()
-        self.optimizer = torch.optim.SGD(self.model.parameters(), FLAGS.lr, momentum=FLAGS.momentum,
+        self.optimizer = torch.optim.SGD(self.model.parameters(), FLAGS.lr,
+                                         momentum=FLAGS.momentum,
                                          weight_decay=FLAGS.weight_decay)
         if FLAGS.optimizer == 'stepLR':
-            self.lr = torch.optim.lr_scheduler.StepLR(self.optimizer, gamma=FLAGS.step_factor,
+            self.lr = torch.optim.lr_scheduler.StepLR(self.optimizer,
+                                                      gamma=FLAGS.step_factor,
                                                       step_size=FLAGS.step_size)
         elif FLAGS.optimizer == 'plateauLR':
-            self.lr = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, factor=FLAGS.step_factor,
-                                                                 patience=FLAGS.step_size-1, threshold=0.01)
+            self.lr = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer,
+                                                                 factor=FLAGS.step_factor,
+                                                                 patience=FLAGS.step_size - 1,
+                                                                 threshold=0.01)
         self.loss = nn.CrossEntropyLoss()
         if FLAGS.ngpus > 0:
             self.loss = self.loss.cuda()
