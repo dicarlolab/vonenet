@@ -10,7 +10,9 @@ import numpy as np
 
 def VOneNet(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
             simple_channels=256, complex_channels=256,
-            noise_mode='neuronal', noise_scale=0.35, noise_level=0.07, k_exc=25,
+            noise_mode='neuronal', noise_scale=0.35, noise_level=0.07,
+            poisson_scale=1.0,
+            k_exc=25,
             model_arch='resnet50', image_size=224, num_classes=200,
             visual_degrees=8, ksize=25,
             stride=4):
@@ -43,6 +45,7 @@ def VOneNet(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
                            phase=phase,
                            k_exc=k_exc, noise_mode=noise_mode,
                            noise_scale=noise_scale, noise_level=noise_level,
+                           poisson_scale=poisson_scale,
                            simple_channels=simple_channels,
                            complex_channels=complex_channels,
                            ksize=ksize, stride=stride, input_size=image_size)

@@ -45,7 +45,8 @@ class GFB(nn.Module):
 
 class VOneBlock(nn.Module):
     def __init__(self, sf, theta, sigx, sigy, phase,
-                 k_exc=25, noise_mode=None, noise_scale=1, noise_level=1,
+                 k_exc=25, noise_mode=None, noise_scale=1, poisson_scale=1.0,
+                 noise_level=1,
                  simple_channels=128, complex_channels=128, ksize=25, stride=4,
                  input_size=224):
         super().__init__()
@@ -65,7 +66,7 @@ class VOneBlock(nn.Module):
         self.phase = phase
         self.k_exc = k_exc
 
-        self.set_noise_mode(noise_mode, noise_scale, noise_level)
+        self.set_noise_mode(noise_mode, noise_scale, noise_level, poisson_scale)
         self.fixed_noise = None
 
         self.simple_conv_q0 = GFB(self.in_channels, self.out_channels, ksize,
@@ -82,7 +83,8 @@ class VOneBlock(nn.Module):
         self.simple = nn.ReLU(inplace=True)
         self.complex = Identity()
         self.gabors = Identity()
-        self.noise = nn.ReLU(inplace=True)
+        # self.noise = nn.ReLU(inplace=True)
+        self.noise = Identity()
         self.output = Identity()
 
     def forward(self, x):
@@ -106,14 +108,16 @@ class VOneBlock(nn.Module):
     def noise_f(self, x):
         if self.noise_mode == 'neuronal':
             eps = 10e-5
-            x *= self.noise_scale
-            x += self.noise_level
+            x *= self.noise_scale  # slope
+            x += self.noise_level  # intercept
             if self.fixed_noise is not None:
-                x += self.fixed_noise * torch.sqrt(F.relu(x.clone()) + eps)
+                x += self.fixed_noise * torch.sqrt(F.relu(x.clone()) +
+                                                   torch.as_tensor(eps))
             else:
                 x += torch.distributions.normal.Normal(torch.zeros_like(x),
                                                        scale=1).rsample() * \
-                     torch.sqrt(F.relu(x.clone()) + eps)
+                     torch.sqrt(F.relu(x.clone()) + torch.as_tensor(eps)) * \
+                     self.poisson_scale
             x -= self.noise_level
             x /= self.noise_scale
         if self.noise_mode == 'gaussian':
@@ -125,10 +129,12 @@ class VOneBlock(nn.Module):
                      self.noise_scale
         return self.noise(x)
 
-    def set_noise_mode(self, noise_mode=None, noise_scale=1, noise_level=1):
+    def set_noise_mode(self, noise_mode=None, noise_scale=1, noise_level=1,
+                       poisson_scale=1):
         self.noise_mode = noise_mode
         self.noise_scale = noise_scale
         self.noise_level = noise_level
+        self.poisson_scale = poisson_scale
 
     def fix_noise(self, batch_size=256, seed=None):
         noise_mean = torch.zeros(batch_size, self.out_channels,
