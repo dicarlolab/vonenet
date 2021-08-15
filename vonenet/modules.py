@@ -46,8 +46,9 @@ class GFB(nn.Module):
 class VOneBlock(nn.Module):
     def __init__(self, sf, theta, sigx, sigy, phase,
                  k_exc=25, noise_mode=None, noise_scale=1, poisson_scale=1.0,
-                 noise_level=1,
-                 simple_channels=128, complex_channels=128, ksize=25, stride=4,
+                 noise_level=1, is_fix_noise=False, noise_batch_size=None,
+                 noise_seed=None, simple_channels=128,
+                 complex_channels=128, ksize=25, stride=4,
                  input_size=224):
         super().__init__()
 
@@ -67,7 +68,10 @@ class VOneBlock(nn.Module):
         self.k_exc = k_exc
 
         self.set_noise_mode(noise_mode, noise_scale, noise_level, poisson_scale)
-        self.fixed_noise = None
+        if is_fix_noise:
+            self.fix_noise(batch_size=noise_batch_size, seed=noise_seed)
+        else:
+            self.fixed_noise = None
 
         self.simple_conv_q0 = GFB(self.in_channels, self.out_channels, ksize,
                                   stride)
