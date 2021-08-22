@@ -118,20 +118,20 @@ def VOneNetEnsemble(
                                 nonlinearity='relu')
 
         if model_arch.lower() == 'resnet50':
-            print('Model: ', 'VOneResnet50')
+            print('Model: ', 'VOneResnet50Ensemble')
             model_back_end = ResNetBackEnd(block=Bottleneck,
                                            layers=[3, 4, 6, 3],
                                            num_classes=num_classes)
         elif model_arch.lower() == 'resnet18':
-            print('Model: ', 'VOneResnet18')
+            print('Model: ', 'VOneResnet18Ensemble')
             model_back_end = ResNetBackEnd(block=BasicBlock,
                                            layers=[2, 2, 2, 2],
                                            num_classes=num_classes)
         elif model_arch.lower() == 'alexnet':
-            print('Model: ', 'VOneAlexNet')
+            print('Model: ', 'VOneAlexNetEnsemble')
             model_back_end = AlexNetBackEnd(num_classes=num_classes)
         elif model_arch.lower() == 'cornets':
-            print('Model: ', 'VOneCORnet-S')
+            print('Model: ', 'VOneCORnet-SEnsemble')
             model_back_end = CORnetSBackEnd(num_classes=num_classes)
 
         model = nn.Sequential(OrderedDict([
