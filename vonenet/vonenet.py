@@ -94,10 +94,9 @@ def VOneNet(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
 def VOneNetEnsemble(
         block_dict, sf_corr=0.75, rand_param=False,
         noise_scale=0.286, noise_level=0.071, is_fix_noise=False,
-        noise_batch_size=None, noise_seed=None,
+        noise_batch_size=None, noise_seed=None, out_channels=512,
         k_exc=23.5, model_arch='resnet18', image_size=64,
         num_classes=200, visual_degrees=2, ksize=25, stride=2):
-
     arch_params = {'k_exc': k_exc, 'arch': model_arch, 'ksize': ksize,
                    'stride': stride}
 
