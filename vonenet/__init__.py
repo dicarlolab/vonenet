@@ -3,7 +3,7 @@ import torch.nn as nn
 import os
 import requests
 
-from .vonenet import VOneNet, VOneNet_ensemble
+from .vonenet import VOneNet, VOneNetEnsemble
 from .utils import *
 from torch.nn import Module
 
