@@ -167,7 +167,6 @@ def Create_VOneBlock(sf_corr=0.75, sf_max=11.3, sf_min=0, rand_param=False,
                      noise_batch_size=None, noise_seed=None,
                      k_exc=23.5, image_size=64,
                      visual_degrees=2, ksize=25, stride=2):
-
     out_channels = simple_channels + complex_channels
 
     sf, theta, phase, nx, ny = generate_gabor_param(out_channels, gabor_seed,
@@ -242,5 +241,58 @@ class VOneBlockEnsemble(nn.Module):
 
         for i in range(1, len(self.block_dict)):
             out += self.models[i](x)
+
+        return out
+
+
+class VOneBlockWeightedEnsemble(nn.Module):
+    def __init__(self, block_dict, sf_corr=0.75, rand_param=False,
+                 noise_scale=0.286, noise_level=0.071, is_fix_noise=False,
+                 noise_batch_size=None, noise_seed=None,
+                 k_exc=23.5, image_size=64,
+                 visual_degrees=2, ksize=25, stride=2):
+
+        super(VOneBlockWeightedEnsemble, self).__init__()
+
+        self.num_voneblocks = len(block_dict)
+        self.weight = torch.ones(self.num_voneblocks) / self.num_voneblocks
+        self.weight = nn.Parameter(self.weight, requires_grad=True)
+        self.block_dict = block_dict
+        self.models = nn.ModuleList()
+
+        for block_type in self.block_dict.keys():
+            block_params = self.block_dict[block_type]
+            model = Create_VOneBlock(sf_corr=sf_corr,
+                                     sf_max=block_params['sf_max'],
+                                     sf_min=block_params['sf_min'],
+                                     rand_param=rand_param,
+                                     gabor_seed=block_params[
+                                         'gabor_seed'],
+                                     simple_channels=block_params[
+                                         'simple_channels'],
+                                     complex_channels=block_params[
+                                         'complex_channels'],
+                                     noise_mode=block_params[
+                                         'noise_mode'],
+                                     noise_scale=noise_scale,
+                                     noise_level=noise_level,
+                                     poisson_scale=block_params[
+                                         'poisson_scale'],
+                                     is_fix_noise=is_fix_noise,
+                                     noise_batch_size=noise_batch_size,
+                                     noise_seed=noise_seed,
+                                     k_exc=k_exc, image_size=image_size,
+                                     visual_degrees=visual_degrees,
+                                     ksize=ksize,
+                                     stride=stride)
+
+            self.models.append(model)
+
+    def forward(self, x):
+
+        out = self.weight[0] * self.models[0](x)
+
+        for i in range(1, self.num_voneblocks):
+            out += self.weight[i] * self.models[i](x)
 
         return out

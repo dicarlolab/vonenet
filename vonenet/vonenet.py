@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from torch import nn
-from .modules import VOneBlock, VOneBlockEnsemble
+from .modules import VOneBlock, VOneBlockEnsemble, VOneBlockWeightedEnsemble
 from .back_ends import ResNetBackEnd, Bottleneck, AlexNetBackEnd, \
     CORnetSBackEnd, BasicBlock
 from .params import generate_gabor_param
@@ -92,7 +92,7 @@ def VOneNet(sf_corr=0.75, sf_max=9, sf_min=0, rand_param=False, gabor_seed=0,
 
 
 def VOneNetEnsemble(
-        block_dict, sf_corr=0.75, rand_param=False,
+        block_dict, weighted=False, sf_corr=0.75, rand_param=False,
         noise_scale=0.286, noise_level=0.071, is_fix_noise=False,
         noise_batch_size=None, noise_seed=None, out_channels=512,
         k_exc=23.5, model_arch='resnet18', image_size=64,
@@ -100,16 +100,31 @@ def VOneNetEnsemble(
     arch_params = {'k_exc': k_exc, 'arch': model_arch, 'ksize': ksize,
                    'stride': stride}
 
-    vone_block = VOneBlockEnsemble(block_dict, sf_corr=sf_corr,
-                                   rand_param=rand_param,
-                                   noise_scale=noise_scale,
-                                   noise_level=noise_level,
-                                   is_fix_noise=is_fix_noise,
-                                   noise_batch_size=noise_batch_size,
-                                   noise_seed=noise_seed,
-                                   k_exc=k_exc, image_size=image_size,
-                                   visual_degrees=visual_degrees, ksize=ksize,
-                                   stride=stride)
+    if weighted:
+        vone_block = VOneBlockWeightedEnsemble(block_dict, sf_corr=sf_corr,
+                                               rand_param=rand_param,
+                                               noise_scale=noise_scale,
+                                               noise_level=noise_level,
+                                               is_fix_noise=is_fix_noise,
+                                               noise_batch_size=noise_batch_size,
+                                               noise_seed=noise_seed,
+                                               k_exc=k_exc,
+                                               image_size=image_size,
+                                               visual_degrees=visual_degrees,
+                                               ksize=ksize,
+                                               stride=stride)
+    else:
+        vone_block = VOneBlockEnsemble(block_dict, sf_corr=sf_corr,
+                                       rand_param=rand_param,
+                                       noise_scale=noise_scale,
+                                       noise_level=noise_level,
+                                       is_fix_noise=is_fix_noise,
+                                       noise_batch_size=noise_batch_size,
+                                       noise_seed=noise_seed,
+                                       k_exc=k_exc, image_size=image_size,
+                                       visual_degrees=visual_degrees,
+                                       ksize=ksize,
+                                       stride=stride)
 
     if model_arch:
         bottleneck = nn.Conv2d(out_channels, 64, kernel_size=1, stride=1,
