@@ -4,6 +4,7 @@ import os
 import requests
 
 from .vonenet import VOneNet, VOneNetEnsemble
+from .resnet import ResNet18
 from .utils import *
 from torch.nn import Module
 
