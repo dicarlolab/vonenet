@@ -7,6 +7,19 @@ import torch.nn as nn
 import torch.nn.init as init
 
 
+def generate_noisy_data(data, labels, p_clean, std_gauss):
+    batch_size = data.shape[0]
+    training_data = data
+
+    start_index = int(np.round(batch_size * p_clean))
+    noise = torch.empty(data[start_index:].shape,
+                        device=data.device).normal_(std=std_gauss)
+    data_noisy = torch.clamp(data[start_index:] + noise, 0, 1)
+    training_data[start_index:] = data_noisy
+
+    return training_data.detach(), labels
+
+
 def gabor_kernel(frequency, sigma_x, sigma_y, theta=0, offset=0, ks=61):
     w = ks // 2
     grid_val = torch.arange(-w, w + 1, dtype=torch.float)
