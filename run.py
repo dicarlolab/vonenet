@@ -1,5 +1,10 @@
+import argparse
+import io
+import os
+import shlex
+import subprocess
+import time
 
-import os, argparse, time, subprocess, io, shlex
 import pandas as pd
 import tqdm
 
@@ -13,7 +18,9 @@ parser.add_argument('--workers', default=20,
                     help='number of data loading workers')
 parser.add_argument('--ngpus', default=1, type=int,
                     help='number of GPUs to use; 0 if you want to run on CPU')
-parser.add_argument('--model_arch', choices=['alexnet', 'resnet50', 'resnet50_at', 'cornets'], default='resnet50',
+parser.add_argument('--model_arch',
+                    choices=['alexnet', 'resnet50', 'resnet50_at', 'cornets'],
+                    default='resnet50',
                     help='back-end model architecture to load')
 
 FLAGS, FIRE_FLAGS = parser.parse_known_args()
@@ -26,7 +33,9 @@ def set_gpus(n=2):
     """
     if n > 0:
         gpus = subprocess.run(shlex.split(
-            'nvidia-smi --query-gpu=index,memory.free,memory.total --format=csv,nounits'), check=True,
+            'nvidia-smi --query-gpu=index,memory.free,memory.total '
+            '--format=csv,nounits'),
+            check=True,
             stdout=subprocess.PIPE).stdout
         gpus = pd.read_csv(io.BytesIO(gpus), sep=', ', engine='python')
         gpus = gpus[gpus['memory.total [MiB]'] > 10000]  # only above 10 GB
@@ -35,7 +44,9 @@ def set_gpus(n=2):
                        for i in os.environ['CUDA_VISIBLE_DEVICES'].split(',')]
             gpus = gpus[gpus['index'].isin(visible)]
         gpus = gpus.sort_values(by='memory.free [MiB]', ascending=False)
-        os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # making sure GPUs are numbered the same way as in nvidia_smi
+        os.environ[
+            'CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'  # making sure GPUs are
+        # numbered the same way as in nvidia_smi
         os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(
             [str(i) for i in gpus['index'].iloc[:n]])
     else:
