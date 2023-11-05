@@ -25,17 +25,8 @@ def get_model(model_arch='resnet50', pretrained=True, map_location='cpu', **kwar
     """
     if pretrained and model_arch:
         url = f'https://vonenet-models.s3.us-east-2.amazonaws.com/{FILE_WEIGHTS[model_arch.lower()]}'
-        home_dir = os.environ['HOME']
-        vonenet_dir = os.path.join(home_dir, '.vonenet')
-        weightsdir_path = os.path.join(vonenet_dir, FILE_WEIGHTS[model_arch.lower()])
-        if not os.path.exists(vonenet_dir):
-            os.makedirs(vonenet_dir)
-        if not os.path.exists(weightsdir_path):
-            print('Downloading model weights to ', weightsdir_path)
-            r = requests.get(url, allow_redirects=True)
-            open(weightsdir_path, 'wb').write(r.content)
-
-        ckpt_data = torch.load(weightsdir_path, map_location=map_location)
+        
+        ckpt_data = torch.hub.load_state_dict_from_url(url, map_location=map_location)
 
         stride = ckpt_data['flags']['stride']
         simple_channels = ckpt_data['flags']['simple_channels']
